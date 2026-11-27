@@ -1,0 +1,30 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: harness (docker)
+        run: harness/run.sh --docker all
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: out-docker
+          path: |
+            out/harness-summary.json
+            out/*/scene/report.json
+            out/*/scene/accept.json
+            out/*/scene/preview.png
+            out/*/scene/overview.svg
+  native:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: harness (native)
+        run: harness/run.sh --native all

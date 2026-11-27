@@ -1,0 +1,16 @@
+# 由 requirements.txt 在 python:3.12-slim（digest 見 Dockerfile）上 pip freeze 產生。更新：harness/run.sh lock
+attrs==26.1.0
+iniconfig==2.3.1
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+numpy==2.5.5
+packaging==26.4
+pluggy==1.7.0
+Pygments==2.21.0
+pytest==9.2.0
+PyYAML==6.0.4
+referencing==0.37.0
+rpds-py==2026.9.1
+scipy==1.18.1
+typing_extensions==4.16.0
+usd-core==26.11

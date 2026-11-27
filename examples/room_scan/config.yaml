@@ -1,0 +1,12 @@
+# PCL room_scan1.pcd 的示範設定。
+# 這間辦公室的家具彼此相連，沒有固定尺寸可對目錄，所以不放目錄：家具留在殘餘網格（objects.unknown: mesh）。
+# 要給機器人用簡化碰撞體時，改成 objects.unknown: box，每個叢集輸出一個外接盒。
+objects:
+  unknown: mesh
+# 只留房間與門外走廊（輸入座標）；窗外遠處的稀疏點不建模
+input:
+  crop: [-4.0, -2.5, -2.0, 7.0, 4.0, 3.0]
+# 房間的開口在 +x 側（接走廊），相機從那一側看進去
+preview:
+  azimuth_deg: 15
+  elevation_deg: 40

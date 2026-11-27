@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcd2scene"
+dynamic = ["version"]
+description = "Reconstruct a simulation scene (URDF, SDF, USD) from a point cloud map"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26", "scipy>=1.11", "pyyaml>=6"]
+
+[project.optional-dependencies]
+usd = ["usd-core>=24.11"]
+test = ["pytest>=8", "jsonschema>=4.20", "usd-core>=24.11"]
+
+[project.scripts]
+pcd2scene = "pcd2scene.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "pcd2scene.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

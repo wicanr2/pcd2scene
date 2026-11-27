@@ -1,0 +1,9 @@
+# 格式檢查工具：check_urdf（urdfdom）與 gz sdf -k（sdformat14，Gazebo Harmonic 版）。
+# 只給 harness/run.sh check-formats 用；主程式不依賴它。
+FROM ubuntu:24.04
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gnupg liburdfdom-tools \
+ && curl -fsSL https://packages.osrfoundation.org/gazebo.gpg -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+ && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable noble main" > /etc/apt/sources.list.d/gazebo-stable.list \
+ && apt-get update && apt-get install -y --no-install-recommends libsdformat14 gz-tools2 \
+ && rm -rf /var/lib/apt/lists/*

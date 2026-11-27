@@ -1,0 +1,11 @@
+{
+  "files": ["scene.json", "scene.urdf", "scene.sdf", "scene.usda", "meshes/residual.stl", "overview.svg", "preview.png"],
+  "rules": {
+    "coverage.0.05": {"min": 0.9},
+    "coverage.0.1": {"min": 0.99},
+    "count.wall": {"min": 3},
+    "count.floor": {"eq": 1},
+    "floor.tilt_deg": {"max": 2.0},
+    "ceiling.height": {"min": 2.7, "max": 3.2}
+  }
+}

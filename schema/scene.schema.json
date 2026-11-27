@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/wicanr2/pcd2scene/schema/scene.schema.json",
+  "title": "pcd2scene scene",
+  "description": "Scene intermediate representation produced by pcd2scene (docs/spec.md). Units are metres, +z is up, the floor is z = 0.",
+  "type": "object",
+  "required": ["format", "version", "units", "up", "tool", "source", "config_sha256", "frame", "elements"],
+  "properties": {
+    "format": {"const": "pcd2scene/scene"},
+    "version": {"const": "1.0"},
+    "units": {"const": "m"},
+    "up": {"const": "+z"},
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {"name": {"const": "pcd2scene"}, "version": {"type": "string"}}
+    },
+    "source": {
+      "type": "object",
+      "required": ["file", "sha256", "points_raw", "points_finite", "points_voxel"],
+      "properties": {
+        "file": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "points_raw": {"type": "integer", "minimum": 0},
+        "points_finite": {"type": "integer", "minimum": 0},
+        "points_cropped": {"type": "integer", "minimum": 0},
+        "points_voxel": {"type": "integer", "minimum": 0},
+        "labels": {"type": "object", "additionalProperties": {"type": "integer"}}
+      }
+    },
+    "config_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "frame": {
+      "type": "object",
+      "required": ["T_scene_from_input", "floor_plane", "mode"],
+      "properties": {
+        "description": {"type": "string"},
+        "T_scene_from_input": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "items": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}}
+        },
+        "floor_plane": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}},
+        "mode": {"enum": ["level", "shift"]}
+      }
+    },
+    "elements": {"type": "array", "items": {"$ref": "#/$defs/element"}}
+  },
+  "$defs": {
+    "vec3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+    "pose": {
+      "type": "object",
+      "required": ["xyz", "yaw"],
+      "properties": {"xyz": {"$ref": "#/$defs/vec3"}, "yaw": {"type": "number"}},
+      "additionalProperties": false
+    },
+    "part": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "size", "xyz"],
+          "properties": {
+            "type": {"const": "box"},
+            "size": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "minimum": 0}},
+            "xyz": {"$ref": "#/$defs/vec3"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "file", "xyz", "scale"],
+          "properties": {
+            "type": {"const": "mesh"},
+            "file": {"type": "string", "pattern": "^meshes/[^/]+\\.stl$"},
+            "xyz": {"$ref": "#/$defs/vec3"},
+            "scale": {"$ref": "#/$defs/vec3"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "element": {
+      "type": "object",
+      "required": ["id", "kind", "class", "pose", "parts"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"},
+        "kind": {"enum": ["floor", "ceiling", "wall", "object", "mesh"]},
+        "class": {"type": "string"},
+        "pose": {"$ref": "#/$defs/pose"},
+        "parts": {"type": "array", "items": {"$ref": "#/$defs/part"}},
+        "export": {"type": "boolean"},
+        "collision": {"type": "boolean"},
+        "units": {"type": "integer", "minimum": 1},
+        "stats": {"type": "object"},
+        "observed": {"type": "object"},
+        "model": {"type": "object"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# 直接依賴。安裝一律用 requirements.lock（含遞移依賴、版本全部釘死），本檔只在更新版本時用來重產 lock。
+numpy==2.5.5
+scipy==1.18.1
+pyyaml==6.0.4
+usd-core==26.11
+pytest==9.2.0
+jsonschema==4.26.0
