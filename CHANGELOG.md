@@ -1,5 +1,9 @@
 # 變更紀錄
 
+## 未發布
+
+- CI：`actions/checkout` v7.0.1、`actions/setup-python` v7.1.0、`actions/upload-artifact` v7.0.2，以 commit SHA 固定，三者都在 Node.js 24 上執行。
+
 ## 0.2.0（2026-11-27）
 
 - `build --stages`：把每個步驟的中間結果畫成圖（`stages/01_input.png` 到 `11_usd.png`）與 `stages/stages.json`。
