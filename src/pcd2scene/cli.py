@@ -1,8 +1,9 @@
 """命令列入口。
 
-  pcd2scene build  CLOUD -o OUT [-c CONFIG.yaml] [--formats urdf,sdf,usd] [--frame scene|input]
+  pcd2scene build  CLOUD -o OUT [-c CONFIG.yaml] [--formats urdf,sdf,usd] [--frame scene|input] [--stages]
+  pcd2scene view   OUT/scene.urdf|scene.sdf|scene.usda -o PNG [--azimuth DEG] [--elevation DEG]
   pcd2scene export OUT/scene.json --formats urdf [--frame input]
-  pcd2scene synth  OUT [--seed 0]
+  pcd2scene synth  OUT [--layout warehouse|office] [--seed 0]
   pcd2scene compare OUT/scene.json TRUTH.json
   pcd2scene accept OUT examples/<name>/accept.json
   pcd2scene info   CLOUD
@@ -45,7 +46,8 @@ def cmd_build(a):
     (out / "meshes").mkdir(parents=True, exist_ok=True)
     t0 = time.monotonic()
     cloud = read_cloud(a.cloud)
-    scene, meshes, P, label = reconstruct(cloud, cfg, log=lambda s: print(s, flush=True))
+    trace = {} if a.stages else None
+    scene, meshes, P, label = reconstruct(cloud, cfg, log=lambda s: print(s, flush=True), trace=trace)
     for name, (v, t) in meshes.items():
         write_stl(out / "meshes" / f"{name}.stl", v, t)
     copy_mesh_assets(scene, out, Path(a.config).parent if a.config else Path.cwd())
@@ -64,6 +66,12 @@ def cmd_build(a):
                        pv["elevation_deg"])
         rep["outputs"].append("preview.png")
         _dump(out / "report.json", rep)
+    if a.stages:
+        from .stages import write_stages
+        imgs = write_stages(trace, scene, out, cfg, cfg["export"]["formats"])
+        rep["outputs"].append("stages/")
+        _dump(out / "report.json", rep)
+        print(f"stages: {', '.join(imgs)}")
     cov = ", ".join(f"{k} m {v:.3f}" for k, v in rep["coverage"].items())
     print(f"coverage: {cov}; elements: {rep['elements']}")
     print(f"wrote {out}: {', '.join(rep['outputs'])}")
@@ -78,9 +86,16 @@ def cmd_export(a):
     return 0
 
 
+def cmd_view(a):
+    from .viewer import render_file
+    r = render_file(a.file, a.out, a.width, a.height, a.azimuth, a.elevation)
+    print(f"wrote {a.out}: {r['file']}, {r['triangles']} triangles")
+    return 0
+
+
 def cmd_synth(a):
     from .synth import generate
-    path, n = generate(a.out, seed=a.seed, spacing=a.spacing, noise=a.noise)
+    path, n = generate(a.out, seed=a.seed, spacing=a.spacing, noise=a.noise, layout=a.layout)
     print(f"wrote {path} ({n} points), truth.json, catalog.yaml")
     return 0
 
@@ -136,18 +151,28 @@ def main(argv=None):
     b.add_argument("--frame", choices=["scene", "input"])
     b.add_argument("--force", action="store_true")
     b.add_argument("--no-preview", action="store_true", help="skip the software-rendered preview.png")
+    b.add_argument("--stages", action="store_true", help="also draw every pipeline step into OUT/stages/")
     b.set_defaults(fn=cmd_build)
+    v = sub.add_parser("view", help="render an exported scene.urdf, scene.sdf or scene.usda to PNG")
+    v.add_argument("file")
+    v.add_argument("-o", "--out", required=True)
+    v.add_argument("--width", type=int, default=900)
+    v.add_argument("--height", type=int, default=640)
+    v.add_argument("--azimuth", type=float, default=-55.0)
+    v.add_argument("--elevation", type=float, default=38.0)
+    v.set_defaults(fn=cmd_view)
     e = sub.add_parser("export", help="re-export scene.json")
     e.add_argument("scene")
     e.add_argument("--formats", default="urdf,sdf,usd")
     e.add_argument("--frame", default="scene", choices=["scene", "input"])
     e.add_argument("--mesh-uri", default="relative")
     e.set_defaults(fn=cmd_export)
-    s = sub.add_parser("synth", help="generate a synthetic warehouse cloud with ground truth")
+    s = sub.add_parser("synth", help="generate a synthetic warehouse or office cloud with ground truth")
     s.add_argument("out")
     s.add_argument("--seed", type=int, default=0)
     s.add_argument("--spacing", type=float, default=0.04)
     s.add_argument("--noise", type=float, default=0.01)
+    s.add_argument("--layout", default="warehouse", choices=["warehouse", "office"])
     s.set_defaults(fn=cmd_synth)
     c = sub.add_parser("compare", help="compare scene.json with synth truth.json")
     c.add_argument("scene")

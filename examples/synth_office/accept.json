@@ -1,0 +1,15 @@
+{
+  "files": ["scene.json", "scene.urdf", "scene.sdf", "scene.usda", "meshes/residual.stl", "overview.svg", "preview.png", "compare.json", "stages/stages.json", "stages/11_usd.png"],
+  "rules": {
+    "compare.pass": {"eq": true},
+    "coverage.0.05": {"min": 0.97},
+    "coverage.0.1": {"min": 0.99},
+    "count.wall": {"eq": 5},
+    "count.desk": {"eq": 4},
+    "count.cabinet": {"eq": 2},
+    "count.shelf": {"eq": 1},
+    "count.unknown": {"eq": 0},
+    "floor.tilt_deg": {"min": 0.6, "max": 0.85},
+    "ceiling.height": {"min": 2.75, "max": 2.85}
+  }
+}

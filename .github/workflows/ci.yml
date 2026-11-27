@@ -19,6 +19,7 @@ jobs:
             out/*/scene/accept.json
             out/*/scene/preview.png
             out/*/scene/overview.svg
+            out/*/scene/stages/
   native:
     runs-on: ubuntu-24.04
     steps:

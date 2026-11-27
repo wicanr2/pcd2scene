@@ -48,7 +48,7 @@
 | `mesh.collision` | true | 殘餘網格是否當碰撞體 |
 | `validate.tolerances` | [0.05, 0.1] | 覆蓋率的距離門檻 |
 | `validate.sample_step` | 0.03 | 場景表面取樣間距 |
-| `preview.*` | -55、38、900、640 | 預覽相機的方位角、仰角（度）與影像大小 |
+| `preview.*` | -55、38、900、640 | 預覽相機的方位角、仰角（度）與影像大小；`--stages` 的 3D 圖沿用同一組角度 |
 | `export.formats` | [urdf, sdf, usd] | |
 | `export.frame` | scene | `scene` 或 `input`，見 [spec.md](spec.md#單位與座標) |
 | `export.mesh_uri` | relative | `relative`、`file`、`package:<名稱>` |

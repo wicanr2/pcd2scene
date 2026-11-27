@@ -6,6 +6,16 @@ pcd2scene 把點雲地圖還原成模擬場景。地面、牆與物件目錄裡�
 
 ![合成倉庫：左輸入點雲，右還原場景](docs/images/synth_warehouse_preview.png)
 
+## 從點雲到 URDF、USD
+
+| 原始點雲（PCD） | 找出牆（紅），拒絕貨架正面（橘） |
+| --- | --- |
+| ![原始點雲](docs/images/tutorial/warehouse/01_input.png) | ![牆的偵測](docs/images/tutorial/warehouse/04_walls.png) |
+| **分群後比對物件目錄** | **匯出的 USD（從 scene.usda 讀回）** |
+| ![比對目錄](docs/images/tutorial/warehouse/07_match.png) | ![匯出的 USD](docs/images/tutorial/warehouse/11_usd.png) |
+
+`pcd2scene build --stages` 會把每一步的結果畫成圖，放在輸出目錄的 `stages/`。[逐步教學](docs/tutorial.md)依序說明十個步驟各做什麼、輸出長什麼樣，並附上 PCD 檔頭、`scene.json`、URDF 與 USD 的實際片段。
+
 ## 快速開始
 
 ```bash
@@ -13,7 +23,7 @@ git clone https://github.com/wicanr2/pcd2scene.git && cd pcd2scene
 harness/run.sh all
 ```
 
-`harness/run.sh` 會檢查環境、安裝、跑測試，再跑兩個示範並逐條驗收，結果寫在 `out/harness-summary.json`。有 docker 時在容器裡執行；沒有 docker 時用 Python 3.11 以上建 `.venv`（`--native`）。給 AI agent 與 CI 的完整說明在 [AGENTS.md](AGENTS.md)。
+`harness/run.sh` 會檢查環境、安裝、跑測試，再跑四個示範並逐條驗收，結果寫在 `out/harness-summary.json`。有 docker 時在容器裡執行；沒有 docker 時用 Python 3.11 以上建 `.venv`（`--native`）。給 AI agent 與 CI 的完整說明在 [AGENTS.md](AGENTS.md)。
 
 還原自己的點雲：
 
@@ -22,9 +32,25 @@ harness/run.sh setup
 .venv/bin/python -m pcd2scene build my_map.pcd -c my_config.yaml -o out/my_map   # native 模式
 ```
 
-或安裝成指令：`pip install .[usd]`，之後用 `pcd2scene build ...`。
+或安裝成指令：`pip install .[usd]`，之後用 `pcd2scene build ...`。常用指令：
+
+| 指令 | 做什麼 |
+| --- | --- |
+| `pcd2scene info CLOUD` | 印出點數、座標範圍與雜湊 |
+| `pcd2scene build CLOUD -c CONFIG -o OUT [--stages]` | 還原並匯出；`--stages` 另畫各步驟的圖 |
+| `pcd2scene view OUT/scene.usda -o usd.png` | 讀回 URDF、SDF 或 USD 畫成圖 |
+| `pcd2scene export OUT/scene.json --frame input` | 從 `scene.json` 重新匯出，例如改回原始座標 |
+| `pcd2scene synth OUT [--layout office]` | 產生附真值的合成點雲 |
+設定檔可以從 [examples/room_scan/config.yaml](examples/room_scan/config.yaml) 改起，有固定尺寸的設備再加物件目錄（見下節）。
 
 ## 示範
+
+| 範例 | 資料 | 示範重點 |
+| --- | --- | --- |
+| [room_scan](examples/room_scan/README.md) | PCL `room_scan1.pcd` | 真實掃描、天花板、不放目錄 |
+| [room_scan2](examples/room_scan2/README.md) | PCL `room_scan2.pcd` | 同一房間另一次掃描：`input.transform` 轉正、依被拒絕的候選調整門檻 |
+| [synth_warehouse](examples/synth_warehouse/README.md) | `pcd2scene synth` | 貨架、桌子、棧板的目錄比對，可對真值 |
+| [synth_office](examples/synth_office/README.md) | `pcd2scene synth --layout office` | 天花板接觸條件、多種家具類別，可對真值 |
 
 ### PCL 房間掃描
 
@@ -52,7 +78,7 @@ Point Cloud Library 的 `room_scan1.pcd`（BSD-3-Clause），一間開向走廊�
 | 貨架 | 2/2，格數 4 與 3 正確，自動偵測的層板高度 1.02、2.02 m（真值 1.0、2.0 m） |
 | 桌子、棧板 | 3/3、2/2；所有目錄物件的中心誤差 6 mm 內、方向誤差 1 度內 |
 | 未登錄的箱子 | 留在殘餘網格 |
-| 覆蓋率 | 5 cm 內 99.1%，10 cm 內 99.99% |
+| 覆蓋率 | 5 cm 內 99.97%，10 cm 內 100% |
 
 俯視總覽（`overview.svg`）：
 
@@ -99,4 +125,4 @@ objects:
 
 ## 授權
 
-Apache-2.0，見 [LICENSE](LICENSE)。示範資料的來源與授權見 [NOTICE](NOTICE)；`docs/images/room_scan_preview.png` 由 PCL 的 `room_scan1.pcd` 渲染。
+Apache-2.0，見 [LICENSE](LICENSE)。示範資料的來源與授權見 [NOTICE](NOTICE)；`docs/images/room_scan*.png` 與 `docs/images/tutorial/room/` 由 PCL 的 `room_scan1.pcd`、`room_scan2.pcd` 渲染。

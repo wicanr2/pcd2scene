@@ -75,7 +75,7 @@ def _in_box(P, T_elem, size, center_z, margin):
             & (np.abs(q[:, 2] - center_z) <= size[2] / 2 + margin))
 
 
-def detect_walls(P, cw, ceiling_h, rng, centroid_xy, log):
+def detect_walls(P, cw, ceiling_h, rng, centroid_xy, log, trace=None):
     cell, zbin = cw["cell"], cw["zbin"]
     if len(P) == 0:
         return []
@@ -85,6 +85,9 @@ def detect_walls(P, cw, ceiling_h, rng, centroid_xy, log):
     cells, vc = np.unique(ijk[:, :2], axis=0, return_counts=True)
     tall = vc * zbin >= 0.5 * cw["min_height"] * cw["min_fill"]
     C = (cells[tall] + 0.5) * cell
+    if trace is not None:
+        trace["wall_cells"] = C.copy()
+        trace["wall_candidates"] = []
     alive = np.ones(len(C), bool)
     walls, fails = [], 0
     min_cells = max(3, int(cw["min_length"] / cell * 0.5))
@@ -143,7 +146,13 @@ def detect_walls(P, cw, ceiling_h, rng, centroid_xy, log):
         contact_ok = True
         if ceiling_h is not None and cw["ceiling_contact"] is not None:
             contact_ok = top >= ceiling_h - cw["ceiling_contact"]
+        seg = (c + u * t0, c + u * t1)
         if top < cw["min_height"] or fill < cw["min_fill"] or not contact_ok:
+            if trace is not None:
+                why = [k for k, bad in (("height", top < cw["min_height"]), ("fill", fill < cw["min_fill"]),
+                                        ("ceiling_contact", not contact_ok)) if bad]
+                trace["wall_candidates"].append({"segment": seg, "length": length, "top": top, "fill": fill,
+                                                 "accepted": False, "reason": why})
             log(f"  wall candidate rejected: length {length:.2f} top {top:.2f} fill {fill:.2f} upper {fill_upper:.2f}"
                 f" contact {contact_ok}")
             fails += 1
@@ -161,6 +170,9 @@ def detect_walls(P, cw, ceiling_h, rng, centroid_xy, log):
             lo, hi = sorted((face, face + outer * cw["thickness"]))
         mid = (lo + hi) / 2
         center = c + nrm * mid + u * (t0 + t1) / 2
+        if trace is not None:
+            trace["wall_candidates"].append({"segment": seg, "length": length, "top": top, "fill": fill,
+                                             "accepted": True, "reason": []})
         yaw = wrap_half_pi(math.atan2(u[1], u[0]))
         walls.append({"center": center, "yaw": yaw, "length": float(length), "thickness": float(hi - lo),
                       "height": float(top), "fill": float(fill)})
@@ -193,7 +205,8 @@ def classify(dims, on_floor, catalog):
     return best
 
 
-def reconstruct(cloud, cfg, log=print):
+def reconstruct(cloud, cfg, log=print, trace=None):
+    """trace 給 dict 時，記下各步驟的中間結果（供 stages 繪圖）；不影響輸出與亂數。"""
     rng = np.random.default_rng(cfg["seed"])
     stats = {"points_raw": cloud.raw_points, "points_finite": int(len(cloud.xyz))}
     pts = cloud.xyz
@@ -206,6 +219,9 @@ def reconstruct(cloud, cfg, log=print):
         pts = pts[np.all((pts >= b[:3]) & (pts <= b[3:]), axis=1)]
     stats["points_cropped"] = int(len(pts))
     P0, _ = voxel_downsample(pts, cfg["preprocess"]["voxel"], cfg["preprocess"]["min_points"])
+    if trace is not None:
+        trace["input"] = pts
+        trace["voxel"] = P0
     stats["points_voxel"] = int(len(P0))
     log(f"points: raw {cloud.raw_points}, finite {len(cloud.xyz)}, voxel {len(P0)}")
 
@@ -239,6 +255,10 @@ def reconstruct(cloud, cfg, log=print):
     P = apply_T(T_lvl, P0)
     tilt = math.degrees(math.acos(min(1.0, abs(n_f[2]))))
     log(f"floor: {cnt_f} points, tilt {tilt:.3f} deg, height at centroid {heights[fi]:.3f}")
+    if trace is not None:
+        trace.update(planes=[{"normal": n.tolist(), "d": float(d), "points": c, "height_at_centroid": h}
+                             for (n, d, c), h in zip(planes, heights)],
+                     floor_index=fi, tilt_deg=tilt, T_level=T_lvl, leveled=P)
 
     ceiling_h = None
     if cfg["ceiling"]["detect"]:
@@ -265,7 +285,11 @@ def reconstruct(cloud, cfg, log=print):
     # ---- 牆
     cw = cfg["walls"]
     free = label == ""
-    walls = detect_walls(P[free], cw, ceiling_h, rng, P[free][:, :2].mean(axis=0) if free.any() else cxy, log)
+    if trace is not None:
+        trace["ceiling_h"] = ceiling_h
+        trace["label_surface"] = label.copy()
+    walls = detect_walls(P[free], cw, ceiling_h, rng, P[free][:, :2].mean(axis=0) if free.any() else cxy, log,
+                         trace)
     for i, w in enumerate(walls):
         Te = pose_T([w["center"][0], w["center"][1], 0.0], w["yaw"])
         size = [w["length"], w["thickness"], w["height"]]
@@ -304,6 +328,9 @@ def reconstruct(cloud, cfg, log=print):
     # ---- 物件
     co = cfg["objects"]
     cand = np.flatnonzero(label == "")
+    if trace is not None:
+        trace["label_walls"] = label.copy()
+        trace["clusters"] = []
     counts = {}
     n_unknown = 0
     if len(cand):
@@ -327,6 +354,11 @@ def reconstruct(cloud, cfg, log=print):
                 continue
             center, Lo, Wo, yaw = min_area_rect(Q[:, :2])
             match = classify((Lo, Wo, height), on_floor, co["catalog"])
+            if trace is not None:
+                trace["clusters"].append({"index": idx, "center": center, "length": Lo, "width": Wo, "yaw": yaw,
+                                          "height": height, "on_floor": on_floor,
+                                          "class": match[1]["class"] if match else None,
+                                          "units": match[2] if match else None})
             Te = pose_T([center[0], center[1], bottom], yaw)
             if match is not None:
                 _, entry, nunit = match
@@ -382,6 +414,8 @@ def reconstruct(cloud, cfg, log=print):
                          "collision": bool(cm["collision"]),
                          "stats": {"points": int(res.sum()), "triangles": int(len(tris))}})
     log(f"residual: {int(res.sum())} points -> {len(tris)} triangles")
+    if trace is not None:
+        trace["label_final"] = label.copy()
 
     groups = {}
     fixed = {"floor", "ceiling", "below_floor", "above_ceiling", "dropped", "residual"}

@@ -10,7 +10,7 @@ import numpy as np
 
 from .geometry import apply_T
 
-TOL = {"center": 0.2, "yaw_deg": 3.0, "wall_length": 0.4, "level": 0.05}
+TOL = {"center": 0.2, "yaw_deg": 3.0, "wall_length": 0.4, "level": 0.05, "ceiling": 0.05}
 
 
 def _to_scene(scene, truth):
@@ -31,11 +31,18 @@ def _ang(a, b, period=math.pi):
 def compare(scene, truth, tol=TOL):
     T = _to_scene(scene, truth)
     res = {"floor": {}, "walls": [], "objects": [], "pass": True}
-    corners = np.array([[x, y, 0.0] for x in (-12, 12) for y in (-7, 7)])
+    x0, x1, y0, y1 = truth.get("floor_extent", (-12, 12, -7, 7))
+    corners = np.array([[x, y, 0.0] for x in (x0, x1) for y in (y0, y1)])
     zc = apply_T(T, corners)[:, 2]
     res["floor"] = {"max_abs_z_at_corners": round(float(np.abs(zc).max()), 4)}
     if np.abs(zc).max() > 0.03:
         res["pass"] = False
+    if truth.get("ceiling") is not None:
+        ce = [e for e in scene["elements"] if e["kind"] == "ceiling"]
+        got = ce[0]["stats"]["height"] if ce else None
+        ok = got is not None and abs(got - truth["ceiling"]) <= tol["ceiling"]
+        res["ceiling"] = {"truth": truth["ceiling"], "height": got, "ok": ok}
+        res["pass"] &= ok
     walls = [e for e in scene["elements"] if e["kind"] == "wall"]
     for w in truth["walls"]:
         c = apply_T(T, np.array([[*w["center"], 0.0]]))[0, :2]

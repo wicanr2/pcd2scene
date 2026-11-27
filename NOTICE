@@ -5,10 +5,19 @@ Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 Demo data
 ---------
-harness/run.sh demo-room downloads room_scan1.pcd from the Point Cloud Library data
-repository at runtime (https://github.com/PointCloudLibrary/data, commit
-084fa0e260580cc765ded83de4ec3f495f1d6f1e). That file is not redistributed in this
-repository. The images docs/images/room_scan_*.png are renderings derived from it.
+harness/run.sh demo-room and demo-room2 download room_scan1.pcd and room_scan2.pcd
+from the Point Cloud Library data repository at runtime
+(https://github.com/PointCloudLibrary/data, commit
+084fa0e260580cc765ded83de4ec3f495f1d6f1e). These files are not redistributed in this
+repository. The images docs/images/room_scan*.png and docs/images/tutorial/room/*.png
+are renderings derived from them.
+
+The input.transform in examples/room_scan2/config.yaml uses the initial alignment
+estimate (rotation 0.6931 rad about z, translation 1.79387, 0.720047, 0) from the PCL
+tutorial source doc/tutorials/content/sources/normal_distributions_transform/
+normal_distributions_transform.cpp (https://github.com/PointCloudLibrary/pcl, commit
+1144afdb3ae941fa6cfab462850bfc96f72695ec), which is distributed under the PCL BSD
+license.
 The PCL data repository is distributed under the following license
 (https://github.com/PointCloudLibrary/data/blob/master/LICENSE):
 

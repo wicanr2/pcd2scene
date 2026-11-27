@@ -1,6 +1,6 @@
 # 場景格式規格 1.0
 
-pcd2scene 把點雲還原成一份中介表示 `scene.json`，再由它產生 URDF、SDF 與 USD。三種格式內容一致，因為都從同一份 `scene.json` 展開。本文件定義 `scene.json` 的欄位、座標慣例、輸出目錄與三種格式的對應方式。機器可讀的定義在 [schema/scene.schema.json](../schema/scene.schema.json)，測試會用它驗證每一次輸出。
+pcd2scene 把點雲還原成一份中介表示 `scene.json`，再由它產生 URDF、SDF 與 USD。三種格式內容一致，因為都從同一份 `scene.json` 展開。機器可讀的定義在 [schema/scene.schema.json](../schema/scene.schema.json)，測試會用它驗證每一次輸出。
 
 ## 單位與座標
 
@@ -67,6 +67,7 @@ pcd2scene 把點雲還原成一份中介表示 `scene.json`，再由它產生 UR
 | `overview.svg` | 俯視總覽：點的佔據格、地面、牆、物件與類別標籤 |
 | `preview.png` | 同一相機下的輸入點雲與還原場景 |
 | `config.resolved.json` | 合併後的完整設定 |
+| `stages/` | 只在 `build --stages` 時產生：各步驟的圖 `01_input.png` 到 `11_usd.png` 與數字摘要 `stages.json`，見 [tutorial.md](tutorial.md) |
 
 ## 三種格式的對應
 

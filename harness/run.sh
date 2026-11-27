@@ -8,9 +8,12 @@
 #   setup          docker：建映像；native：建 .venv 並裝 requirements.lock
 #   test           單元與整合測試（pytest）
 #   demo-synth     合成倉庫：產生點雲與真值 → 還原 → 對真值 → 驗收
+#   demo-office    合成辦公室（有天花板）：同上
 #   demo-room      下載 PCL room_scan1.pcd（釘 commit 與 SHA-256）→ 還原 → 驗收
-#   check-formats  用 check_urdf 與 gz sdf -k 檢查兩個示範的輸出（只有 docker 模式）
-#   all            doctor、setup、test、demo-synth、demo-room，docker 模式再加 check-formats
+#   demo-room2     下載 PCL room_scan2.pcd（同一房間另一次掃描）→ input.transform 轉正 → 還原 → 驗收
+#   check-formats  用 check_urdf 與 gz sdf -k 檢查各示範的輸出（只有 docker 模式）
+#   all            doctor、setup、test、四個示範，docker 模式再加 check-formats
+# 每個示範都加 --stages，各步驟的圖在 out/<示範>/scene/stages/。
 #   lock           由 requirements.txt 重產 requirements.lock（docker，需要網路）
 #
 # 模式：預設 auto，docker daemon 可用就用 docker，否則用 native。也可用環境變數 P2S_MODE。
@@ -37,8 +40,9 @@ CPUS=${P2S_CPUS:-$(( NPROC / 2 > 4 ? 4 : (NPROC / 2 < 1 ? 1 : NPROC / 2) ))}
 MEMORY=${P2S_MEMORY:-4g}
 
 # 示範資料：Point Cloud Library 的 data 儲存庫（BSD-3-Clause），釘在 commit 084fa0e
-ROOM_URL=https://raw.githubusercontent.com/PointCloudLibrary/data/084fa0e260580cc765ded83de4ec3f495f1d6f1e/tutorials/room_scan1.pcd
-ROOM_SHA256=52c373a67d8beaa318b5e8c024f06e219f14acc1db28fa7333ff5dc73840428b
+PCL_DATA=https://raw.githubusercontent.com/PointCloudLibrary/data/084fa0e260580cc765ded83de4ec3f495f1d6f1e/tutorials
+ROOM1_SHA256=52c373a67d8beaa318b5e8c024f06e219f14acc1db28fa7333ff5dc73840428b
+ROOM2_SHA256=c713876195eb28f8cafea8666c631c15b0fd90001a4f74e92b02dfc269d5cb80
 
 hash12() { cat "$@" | sha256sum | cut -c1-12; }
 IMAGE=pcd2scene:$(cd "$ROOT" && hash12 Dockerfile requirements.lock)
@@ -120,53 +124,62 @@ cmd_test() {
   if py -m pytest -q -p no:cacheprovider "$SRC/tests"; then record test pass; else record test FAIL; return 1; fi
 }
 
-cmd_demo_synth() {
-  log "demo-synth ($MODE)"
+# 合成示範：run_synth <版面> <輸出名> <紀錄名>
+run_synth() {
+  local layout=$1 name=$2 step=$3
+  log "$step ($MODE)"
   paths
-  rm -rf "$OUT/synth_warehouse"
-  py -m pcd2scene synth "$OUTP/synth_warehouse/data"
-  py -m pcd2scene build "$OUTP/synth_warehouse/data/warehouse.pcd" -c "$OUTP/synth_warehouse/data/catalog.yaml" \
-    -o "$OUTP/synth_warehouse/scene"
-  py -m pcd2scene compare "$OUTP/synth_warehouse/scene/scene.json" "$OUTP/synth_warehouse/data/truth.json" \
-    --out "$OUTP/synth_warehouse/scene/compare.json" || true
-  if py -m pcd2scene accept "$OUTP/synth_warehouse/scene" "$SRC/examples/synth_warehouse/accept.json" \
-      --json "$OUTP/synth_warehouse/scene/accept.json"; then
-    record demo-synth pass
+  rm -rf "${OUT:?}/$name"
+  py -m pcd2scene synth "$OUTP/$name/data" --layout "$layout"
+  py -m pcd2scene build "$OUTP/$name/data/$layout.pcd" -c "$OUTP/$name/data/catalog.yaml" \
+    -o "$OUTP/$name/scene" --stages
+  py -m pcd2scene compare "$OUTP/$name/scene/scene.json" "$OUTP/$name/data/truth.json" \
+    --out "$OUTP/$name/scene/compare.json" || true
+  if py -m pcd2scene accept "$OUTP/$name/scene" "$SRC/examples/$name/accept.json" \
+      --json "$OUTP/$name/scene/accept.json"; then
+    record "$step" pass
   else
-    record demo-synth FAIL; return 1
+    record "$step" FAIL; return 1
   fi
 }
+cmd_demo_synth() { run_synth warehouse synth_warehouse demo-synth; }
+cmd_demo_office() { run_synth office synth_office demo-office; }
 
-fetch_room() {
-  local dst=$DATA/room_scan1.pcd
+# 下載 PCL 示範點雲：fetch_pcl <檔名> <SHA-256>
+fetch_pcl() {
+  local file=$1 sha=$2 dst=$DATA/$1 url=$PCL_DATA/$1
   mkdir -p "$DATA"
-  if [[ -f $dst ]] && echo "$ROOM_SHA256  $dst" | sha256sum -c --quiet - 2>/dev/null; then
-    echo "room_scan1.pcd present (sha256 ok)"; return 0
+  if [[ -f $dst ]] && echo "$sha  $dst" | sha256sum -c --quiet - 2>/dev/null; then
+    echo "$file present (sha256 ok)"; return 0
   fi
-  echo "downloading $ROOM_URL"
+  echo "downloading $url"
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL --retry 3 -o "$dst.part" "$ROOM_URL" || die "download failed"
+    curl -fsSL --retry 3 -o "$dst.part" "$url" || die "download failed"
   else
     python3 -c 'import sys, urllib.request; urllib.request.urlretrieve(sys.argv[1], sys.argv[2])' \
-      "$ROOM_URL" "$dst.part" || die "download failed"
+      "$url" "$dst.part" || die "download failed"
   fi
-  echo "$ROOM_SHA256  $dst.part" | sha256sum -c --quiet - || { rm -f "$dst.part"; die "sha256 mismatch for room_scan1.pcd"; }
+  echo "$sha  $dst.part" | sha256sum -c --quiet - || { rm -f "$dst.part"; die "sha256 mismatch for $file"; }
   mv "$dst.part" "$dst"
 }
 
-cmd_demo_room() {
-  log "demo-room ($MODE)"
+# 真實掃描示範：run_room <檔名> <SHA-256> <範例名> <紀錄名>
+run_room() {
+  local file=$1 sha=$2 name=$3 step=$4
+  log "$step ($MODE)"
   paths
-  fetch_room
-  rm -rf "$OUT/room_scan"
-  py -m pcd2scene build "$DATAP/room_scan1.pcd" -c "$SRC/examples/room_scan/config.yaml" -o "$OUTP/room_scan/scene"
-  if py -m pcd2scene accept "$OUTP/room_scan/scene" "$SRC/examples/room_scan/accept.json" \
-      --json "$OUTP/room_scan/scene/accept.json"; then
-    record demo-room pass
+  fetch_pcl "$file" "$sha"
+  rm -rf "${OUT:?}/$name"
+  py -m pcd2scene build "$DATAP/$file" -c "$SRC/examples/$name/config.yaml" -o "$OUTP/$name/scene" --stages
+  if py -m pcd2scene accept "$OUTP/$name/scene" "$SRC/examples/$name/accept.json" \
+      --json "$OUTP/$name/scene/accept.json"; then
+    record "$step" pass
   else
-    record demo-room FAIL; return 1
+    record "$step" FAIL; return 1
   fi
 }
+cmd_demo_room() { run_room room_scan1.pcd "$ROOM1_SHA256" room_scan demo-room; }
+cmd_demo_room2() { run_room room_scan2.pcd "$ROOM2_SHA256" room_scan2 demo-room2; }
 
 cmd_check_formats() {
   log "check-formats"
@@ -175,8 +188,10 @@ cmd_check_formats() {
     docker build -t "$CHECK_IMAGE" -f "$ROOT/harness/Dockerfile.check" "$ROOT/harness"
   fi
   local dirs=() d
-  for d in synth_warehouse room_scan; do [[ -f $OUT/$d/scene/scene.urdf ]] && dirs+=("$d"); done
-  [[ ${#dirs[@]} -gt 0 ]] || die "no demo output; run demo-synth or demo-room first"
+  for d in synth_warehouse synth_office room_scan room_scan2; do
+    [[ -f $OUT/$d/scene/scene.urdf ]] && dirs+=("$d")
+  done
+  [[ ${#dirs[@]} -gt 0 ]] || die "no demo output; run a demo first"
   if docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp --network none --memory 2g --cpus 2 --pids-limit 256 \
       --log-opt max-size=10m --log-opt max-file=3 -v "$OUT:/out:ro" "$CHECK_IMAGE" bash -c '
         set -e
@@ -227,7 +242,9 @@ case $CMD in
   setup) cmd_setup ;;
   test) cmd_test || rc=1 ;;
   demo-synth) cmd_demo_synth || rc=1 ;;
+  demo-office) cmd_demo_office || rc=1 ;;
   demo-room) cmd_demo_room || rc=1 ;;
+  demo-room2) cmd_demo_room2 || rc=1 ;;
   check-formats) cmd_check_formats || rc=1 ;;
   lock) [[ $MODE == docker ]] || die "lock needs docker"; cmd_lock ;;
   all)
@@ -235,7 +252,9 @@ case $CMD in
     cmd_setup
     cmd_test || rc=1
     cmd_demo_synth || rc=1
+    cmd_demo_office || rc=1
     cmd_demo_room || rc=1
+    cmd_demo_room2 || rc=1
     cmd_check_formats || rc=1
     ;;
   *) die "unknown command: $CMD (see harness/run.sh --help)" ;;

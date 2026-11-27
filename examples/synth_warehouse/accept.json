@@ -1,15 +1,36 @@
 {
-  "files": ["scene.json", "scene.urdf", "scene.sdf", "scene.usda", "meshes/residual.stl", "overview.svg", "preview.png", "compare.json"],
+  "files": ["scene.json", "scene.urdf", "scene.sdf", "scene.usda", "meshes/residual.stl", "overview.svg", "preview.png", "compare.json", "stages/stages.json", "stages/11_usd.png"],
   "rules": {
-    "compare.pass": {"eq": true},
-    "coverage.0.05": {"min": 0.97},
-    "coverage.0.1": {"min": 0.99},
-    "count.wall": {"eq": 5},
-    "count.rack": {"eq": 2},
-    "count.table": {"eq": 3},
-    "count.pallet": {"eq": 2},
-    "count.unknown": {"eq": 0},
-    "floor.tilt_deg": {"min": 0.9, "max": 1.0},
-    "ceiling.height": {"eq": null}
+    "compare.pass": {
+      "eq": true
+    },
+    "coverage.0.05": {
+      "min": 0.97
+    },
+    "coverage.0.1": {
+      "min": 0.99
+    },
+    "count.wall": {
+      "eq": 5
+    },
+    "count.rack": {
+      "eq": 2
+    },
+    "count.table": {
+      "eq": 3
+    },
+    "count.pallet": {
+      "eq": 2
+    },
+    "count.unknown": {
+      "eq": 0
+    },
+    "floor.tilt_deg": {
+      "min": 0.9,
+      "max": 1.0
+    },
+    "ceiling.height": {
+      "eq": null
+    }
   }
 }
