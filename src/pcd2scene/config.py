@@ -69,7 +69,11 @@ def _merge(base, over, path=""):
     for k, v in over.items():
         if k not in base:
             raise KeyError(f"unknown config key: {path}{k}")
-        if isinstance(base[k], dict) and isinstance(v, dict):
+        if isinstance(base[k], dict):
+            if v is None:                   # 只有區段名、欄位全被註解掉：沿用預設
+                continue
+            if not isinstance(v, dict):
+                raise TypeError(f"config key {path}{k} must be a mapping, got {type(v).__name__}")
             _merge(base[k], v, f"{path}{k}.")
         else:
             base[k] = v

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="250" viewBox="0 0 960 250" font-family="Noto Sans CJK TC, PingFang TC, Microsoft JhengHei, WenQuanYi Zen Hei, sans-serif" font-size="14" fill="#222">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="960" height="250" fill="#fff"/>
+  <!-- 上排：依序認領點的步驟 -->
+  <g font-size="13" text-anchor="middle">
+    <rect x="30" y="20" width="150" height="46" rx="6" fill="#eceff1" stroke="#555"/>
+    <text x="105" y="40">2 體素平均後</text>
+    <text x="105" y="58" font-size="12">366,350 點</text>
+    <rect x="230" y="20" width="150" height="46" rx="6" fill="#e8f5e9" stroke="#2e7d32"/>
+    <text x="305" y="40">3 地面認領</text>
+    <text x="305" y="58" font-size="12">180,701 點</text>
+    <rect x="430" y="20" width="150" height="46" rx="6" fill="#ffebee" stroke="#c62828"/>
+    <text x="505" y="40">4 牆認領</text>
+    <text x="505" y="58" font-size="12">151,644 點</text>
+    <rect x="630" y="20" width="150" height="46" rx="6" fill="#fff8e1" stroke="#b28704"/>
+    <text x="705" y="40">6、7 物件認領</text>
+    <text x="705" y="58" font-size="12">30,349 點</text>
+    <rect x="800" y="20" width="140" height="46" rx="6" fill="#e3f2fd" stroke="#1e6fb8"/>
+    <text x="870" y="40">8 剩下的</text>
+    <text x="870" y="58" font-size="12">3,656 點 → 網格</text>
+  </g>
+  <g stroke="#555" stroke-width="1.6" fill="none" marker-end="url(#a)">
+    <path d="M182,43 L228,43"/>
+    <path d="M382,43 L428,43"/>
+    <path d="M582,43 L628,43"/>
+    <path d="M782,43 L798,43"/>
+  </g>
+  <text x="30" y="100" font-size="13" fill="#555">每一步只處理前面還沒被認領的點。下方長條是合成倉庫的 366,350 點最後的歸屬（report.json 的 labels）：</text>
+  <!-- 下排：比例長條，總寬 900 -->
+  <g stroke="#fff" stroke-width="1">
+    <rect x="30" y="116" width="444" height="44" fill="#66bb6a"/>
+    <rect x="474" y="116" width="372.5" height="44" fill="#e57373"/>
+    <rect x="846.5" y="116" width="74.5" height="44" fill="#ffd54f"/>
+    <rect x="921" y="116" width="9" height="44" fill="#42a5f5"/>
+  </g>
+  <g font-size="13" text-anchor="middle">
+    <text x="252" y="143" fill="#fff" font-weight="bold">floor 49.3%</text>
+    <text x="660" y="143" fill="#fff" font-weight="bold">wall 41.4%</text>
+  </g>
+  <g font-size="12" fill="#333">
+    <path d="M884,162 L884,186" stroke="#999"/>
+    <text x="884" y="200" text-anchor="middle">object 8.3%</text>
+    <path d="M925,162 L925,214" stroke="#999"/>
+    <text x="930" y="230" text-anchor="end">residual 1.0%</text>
+  </g>
+</svg>

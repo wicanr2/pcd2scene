@@ -6,6 +6,13 @@ Point Cloud Library 資料庫的 `tutorials/room_scan2.pcd`（BSD-3-Clause，com
 harness/run.sh demo-room2           # 輸出在 out/room_scan2/scene/，各步驟的圖在 stages/
 ```
 
+harness 下載點雲後執行的指令與 [room_scan](../room_scan/README.md) 相同，只換了點雲、設定檔與輸出目錄：
+
+| 指令 | 輸入 | 輸出 |
+| --- | --- | --- |
+| `build` | `data/room_scan2.pcd`、[config.yaml](config.yaml) | `out/room_scan2/scene/`（`scene.json`、三種格式、`report.json`、`stages/` 等） |
+| `accept` | `out/room_scan2/scene/`、[accept.json](accept.json) | `accept.json`：ACCEPT |
+
 設定 [config.yaml](config.yaml) 示範兩件事。
 
 **先轉正再裁切。** 這次掃描的座標相對第一次轉了約 40 度，軸對齊的裁切框框不乾淨。`input.transform` 用 PCL NDT 教學程式（`normal_distributions_transform.cpp`）給的初始估計：繞 z 轉 0.6931 rad、平移 (1.79387, 0.720047, 0)。轉過去之後沿用 room_scan 的裁切範圍。這組估計來自里程計，NDT 會再精修，所以不是精確對位，只用來把房間擺正。
@@ -17,7 +24,13 @@ wall candidate rejected: length 9.55 top 2.88 fill 0.26 upper 0.41 contact True
 wall candidate rejected: length 9.40 top 2.87 fill 0.29 upper 0.45 contact True
 ```
 
-長度、高度都夠，也碰得到天花板，只差填滿率低於預設的 0.33：這次掃描器站的位置讓長牆被家具擋得較多。其他候選的填滿率是 0.15 到 0.19，或碰不到天花板。設定把 `walls.min_fill` 降到 0.24，夾在兩群之間，兩面長牆通過，家具與隔板仍被拒絕。調整前後的候選與結果可以在 `stages/04_walls.png` 對照。
+長度、高度都夠，也碰得到天花板，只差填滿率低於預設的 0.33：這次掃描器站的位置讓長牆被家具擋得較多。其他候選的填滿率是 0.15 到 0.19，或碰不到天花板。設定把 `walls.min_fill` 降到 0.24，夾在兩群之間，兩面長牆通過，家具與隔板仍被拒絕。下面是第 4 步調整前後的圖，紅色是牆，橘線是被拒絕的候選：
+
+| 預設 0.33：牆 1 面 | 調成 0.24：牆 3 面 |
+| --- | --- |
+| ![預設門檻](../../docs/images/tutorial/room2/04_walls_default.png) | ![調整後](../../docs/images/tutorial/room2/04_walls.png) |
+
+左圖是把 [config.yaml](config.yaml) 最後的 `min_fill: 0.24` 註解掉重跑的結果，右圖是 harness 的輸出 `out/room_scan2/scene/stages/04_walls.png`。
 
 | 項目 | 結果 |
 | --- | --- |

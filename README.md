@@ -32,25 +32,32 @@ harness/run.sh setup
 .venv/bin/python -m pcd2scene build my_map.pcd -c my_config.yaml -o out/my_map   # native 模式
 ```
 
-或安裝成指令：`pip install .[usd]`，之後用 `pcd2scene build ...`。常用指令：
+或安裝成指令：`pip install .[usd]`，之後用 `pcd2scene build ...`。指令和檔案的關係：
 
-| 指令 | 做什麼 |
-| --- | --- |
-| `pcd2scene info CLOUD` | 印出點數、座標範圍與雜湊 |
-| `pcd2scene build CLOUD -c CONFIG -o OUT [--stages]` | 還原並匯出；`--stages` 另畫各步驟的圖 |
-| `pcd2scene view OUT/scene.usda -o usd.png` | 讀回 URDF、SDF 或 USD 畫成圖 |
-| `pcd2scene export OUT/scene.json --frame input` | 從 `scene.json` 重新匯出，例如改回原始座標 |
-| `pcd2scene synth OUT [--layout office]` | 產生附真值的合成點雲 |
-設定檔可以從 [examples/room_scan/config.yaml](examples/room_scan/config.yaml) 改起，有固定尺寸的設備再加物件目錄（見下節）。
+![指令與檔案的關係](docs/images/flow.svg)
+
+| 指令 | 輸入 | 輸出 |
+| --- | --- | --- |
+| `pcd2scene info CLOUD` | 點雲 | 點數、座標範圍與雜湊 |
+| `pcd2scene build CLOUD -c CONFIG -o OUT [--stages]` | 點雲、設定檔 | `OUT/` 下的 `scene.json`、URDF、SDF、USD、報告；`--stages` 另畫各步驟的圖 |
+| `pcd2scene view OUT/scene.usda -o usd.png` | URDF、SDF 或 USD | 讀回畫成的 PNG |
+| `pcd2scene export OUT/scene.json --frame input` | `scene.json` | 重新匯出的三種格式，例如改回原始座標 |
+| `pcd2scene synth OUT [--layout office]` | 無 | 合成點雲、真值、物件目錄 |
+| `pcd2scene compare SCENE TRUTH` | `scene.json`、真值 | PASS／FAIL 與逐項誤差 |
+| `pcd2scene accept OUT SPEC` | 輸出目錄、驗收規格 | ACCEPT／REJECT 與逐條結果 |
+
+每個指令的選項、範例輸出與結束碼見 [docs/commands.md](docs/commands.md)。設定檔可以從 [examples/room_scan/config.yaml](examples/room_scan/config.yaml) 改起，有固定尺寸的設備再加物件目錄（見下節）。
 
 ## 示範
 
+三種場景各有一頁從原始點雲畫到 URDF、USD 的逐步圖解，列出每一步的輸入、輸出與數字：
+
 | 範例 | 資料 | 示範重點 |
 | --- | --- | --- |
-| [room_scan](examples/room_scan/README.md) | PCL `room_scan1.pcd` | 真實掃描、天花板、不放目錄 |
-| [room_scan2](examples/room_scan2/README.md) | PCL `room_scan2.pcd` | 同一房間另一次掃描：`input.transform` 轉正、依被拒絕的候選調整門檻 |
-| [synth_warehouse](examples/synth_warehouse/README.md) | `pcd2scene synth` | 貨架、桌子、棧板的目錄比對，可對真值 |
-| [synth_office](examples/synth_office/README.md) | `pcd2scene synth --layout office` | 天花板接觸條件、多種家具類別，可對真值 |
+| [synth_warehouse](examples/synth_warehouse/README.md)（逐步圖解在 [docs/tutorial.md](docs/tutorial.md)） | `pcd2scene synth` | 貨架、桌子、棧板的目錄比對，貨架正面靠填滿率和牆區分，可對真值 |
+| [synth_office](examples/synth_office/README.md) | `pcd2scene synth --layout office` | 天花板：牆要碰到天花板，櫃子與書架因此被排除；三種家具模型，可對真值 |
+| [room_scan](examples/room_scan/README.md) | PCL `room_scan1.pcd` | 真實掃描：密度不均、地面被擋、家具連成一片留在殘餘網格 |
+| [room_scan2](examples/room_scan2/README.md) | PCL `room_scan2.pcd` | 同一房間另一次掃描：`input.transform` 轉正、依被拒絕的候選調整門檻，附前後對照 |
 
 ### PCL 房間掃描
 
@@ -125,4 +132,4 @@ objects:
 
 ## 授權
 
-Apache-2.0，見 [LICENSE](LICENSE)。示範資料的來源與授權見 [NOTICE](NOTICE)；`docs/images/room_scan*.png` 與 `docs/images/tutorial/room/` 由 PCL 的 `room_scan1.pcd`、`room_scan2.pcd` 渲染。
+Apache-2.0，見 [LICENSE](LICENSE)。示範資料的來源與授權見 [NOTICE](NOTICE)；`docs/images/room_scan*.png`、`docs/images/tutorial/room/` 與 `docs/images/tutorial/room2/` 由 PCL 的 `room_scan1.pcd`、`room_scan2.pcd` 渲染。

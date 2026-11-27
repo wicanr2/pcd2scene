@@ -9,8 +9,8 @@ harness/run.sh demo-room and demo-room2 download room_scan1.pcd and room_scan2.p
 from the Point Cloud Library data repository at runtime
 (https://github.com/PointCloudLibrary/data, commit
 084fa0e260580cc765ded83de4ec3f495f1d6f1e). These files are not redistributed in this
-repository. The images docs/images/room_scan*.png and docs/images/tutorial/room/*.png
-are renderings derived from them.
+repository. The images docs/images/room_scan*.png, docs/images/tutorial/room/*.png and
+docs/images/tutorial/room2/*.png are renderings derived from them.
 
 The input.transform in examples/room_scan2/config.yaml uses the initial alignment
 estimate (rotation 0.6931 rad about z, translation 1.79387, 0.720047, 0) from the PCL

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# pcd2scene 的單一入口：環境檢查、安裝、測試、兩個示範的還原與驗收。
+# pcd2scene 的單一入口：環境檢查、安裝、測試、四個示範的還原與驗收。
 #
 #   harness/run.sh [--docker|--native] <命令>
 #
@@ -13,8 +13,10 @@
 #   demo-room2     下載 PCL room_scan2.pcd（同一房間另一次掃描）→ input.transform 轉正 → 還原 → 驗收
 #   check-formats  用 check_urdf 與 gz sdf -k 檢查各示範的輸出（只有 docker 模式）
 #   all            doctor、setup、test、四個示範，docker 模式再加 check-formats
-# 每個示範都加 --stages，各步驟的圖在 out/<示範>/scene/stages/。
 #   lock           由 requirements.txt 重產 requirements.lock（docker，需要網路）
+#
+# 每個示範的輸入與輸出在 out/<示範>/（合成資料在 data/，還原結果在 scene/），build 一律加 --stages，
+# 各步驟的圖在 out/<示範>/scene/stages/。指令與檔案的說明見 docs/commands.md。
 #
 # 模式：預設 auto，docker daemon 可用就用 docker，否則用 native。也可用環境變數 P2S_MODE。
 # 環境變數：P2S_OUT（輸出，預設 out/）、P2S_DATA（下載資料，預設 data/）、P2S_CPUS、P2S_MEMORY。
@@ -27,7 +29,7 @@ while [[ $# -gt 0 && $1 == --* ]]; do
   case $1 in
     --docker) MODE=docker ;;
     --native) MODE=native ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -h|--help) awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift

@@ -1,6 +1,6 @@
 # 設定
 
-`pcd2scene build CLOUD -c config.yaml` 讀 YAML，逐層覆蓋 [config.py](../src/pcd2scene/config.py) 的預設值。拼錯的欄位會直接報錯，不會被默默忽略。合併後的完整設定寫在輸出目錄的 `config.resolved.json`，它的 SHA-256 記在 `scene.json` 的 `config_sha256`。
+`pcd2scene build CLOUD -c config.yaml` 讀 YAML，逐層覆蓋 [config.py](../src/pcd2scene/config.py) 的預設值。拼錯的欄位會直接報錯，不會被默默忽略；區段底下的欄位全被註解掉（只剩 `walls:`）時沿用該區段的預設值。合併後的完整設定寫在輸出目錄的 `config.resolved.json`，它的 SHA-256 記在 `scene.json` 的 `config_sha256`。
 
 ## 欄位
 

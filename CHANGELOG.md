@@ -2,6 +2,9 @@
 
 ## 未發布
 
+- 文件：新增 [docs/commands.md](docs/commands.md)，逐一說明每個指令的輸入、輸出、範例輸出、log 與結束碼；指令與檔案關係圖 `docs/images/flow.svg`、點的歸屬圖 `docs/images/point_labels.svg`。
+- 文件：合成辦公室與 PCL 房間的範例頁改成逐步圖解（原始點雲到 URDF、USD 的 11 張圖，每步列出輸入與輸出）；`room_scan2` 加上調整 `walls.min_fill` 前後的對照圖；教學的步驟表加上輸入、輸出欄。
+- 修正：設定檔某個區段的欄位全被註解掉（例如只剩 `walls:`）時，`build` 會因區段變成 null 而失敗；現在沿用預設值。區段寫成非 mapping 的值時明確報錯。
 - CI：`actions/checkout` v7.0.1、`actions/setup-python` v7.1.0、`actions/upload-artifact` v7.0.2，以 commit SHA 固定，三者都在 Node.js 24 上執行。
 
 ## 0.2.0（2026-11-27）

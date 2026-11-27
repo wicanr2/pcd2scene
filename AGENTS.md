@@ -28,16 +28,16 @@ native 模式沒有 `check-formats`（需要 docker 映像裡的 `check_urdf` �
 
 ## 各步驟
 
-| 命令 | 做什麼 | 需要網路 |
-| --- | --- | --- |
-| `doctor` | 檢查 docker 或 Python、sha256sum、下載工具 | 否 |
-| `setup` | docker：建 `pcd2scene:<雜湊>` 映像；native：建 `.venv` 並裝 `requirements.lock` | 是（第一次） |
-| `test` | `pytest tests/`：讀檔、幾何、合成倉庫與辦公室對真值、三種格式結構與 JSON Schema、三種格式讀回一致、各步驟圖、輸出可重現 | 否 |
-| `demo-synth` | 產生合成倉庫 → 還原（`--stages`）→ `compare` 對真值 → `accept` | 否 |
-| `demo-office` | 同上，合成辦公室 | 否 |
-| `demo-room` | 下載 PCL `room_scan1.pcd`（釘 commit 與 SHA-256）→ 還原（`--stages`）→ `accept` | 是（下載一次，存在 `data/`） |
-| `demo-room2` | 下載 PCL `room_scan2.pcd` → 還原 → `accept` | 是（同上） |
-| `check-formats` | `check_urdf`、`gz sdf -k` 檢查各示範的輸出 | 是（第一次建檢查映像） |
+| 命令 | 做什麼 | 輸出 | 需要網路 |
+| --- | --- | --- | --- |
+| `doctor` | 檢查 docker 或 Python、sha256sum、下載工具 | 終端機 | 否 |
+| `setup` | docker：建 `pcd2scene:<雜湊>` 映像；native：建 `.venv` 並裝 `requirements.lock` | 映像或 `.venv/` | 是（第一次） |
+| `test` | `pytest tests/`：讀檔、設定檔合併、幾何、合成倉庫與辦公室對真值、三種格式結構與 JSON Schema、三種格式讀回一致、各步驟圖、輸出可重現 | 終端機 | 否 |
+| `demo-synth` | 產生合成倉庫 → 還原（`--stages`）→ `compare` 對真值 → `accept` | `out/synth_warehouse/data/`、`out/synth_warehouse/scene/` | 否 |
+| `demo-office` | 同上，合成辦公室 | `out/synth_office/data/`、`out/synth_office/scene/` | 否 |
+| `demo-room` | 下載 PCL `room_scan1.pcd`（釘 commit 與 SHA-256）→ 還原（`--stages`）→ `accept` | `data/room_scan1.pcd`、`out/room_scan/scene/` | 是（下載一次，存在 `data/`） |
+| `demo-room2` | 下載 PCL `room_scan2.pcd` → 還原 → `accept` | `data/room_scan2.pcd`、`out/room_scan2/scene/` | 是（同上） |
+| `check-formats` | `check_urdf`、`gz sdf -k` 檢查各示範的輸出 | 終端機 | 是（第一次建檢查映像） |
 
 docker 模式的容器一律 `--rm`、`--network none`、限制 CPU 與記憶體，原始碼唯讀掛載。下載在主機端做。
 
@@ -47,7 +47,9 @@ docker 模式的容器一律 `--rm`、`--network none`、限制 CPU 與記憶體
 - `out/<示範>/scene/overview.svg`：俯視圖，牆與物件標了類別。
 - `out/<示範>/scene/accept.json`：每條驗收規則的數值與結果。
 - `out/<示範>/scene/report.json`：覆蓋率與距離統計，定義見 [docs/spec.md](docs/spec.md)。
-- `out/<示範>/scene/stages/`：每個步驟的圖與 `stages.json`，對照 [docs/tutorial.md](docs/tutorial.md)。
+- `out/<示範>/scene/stages/`：每個步驟的圖與 `stages.json`，對照 [docs/tutorial.md](docs/tutorial.md) 與各範例的 README。
+
+各指令的輸入、輸出、log 與結束碼見 [docs/commands.md](docs/commands.md)。
 
 ## 修改時的規則
 
@@ -63,6 +65,8 @@ docker 模式的容器一律 `--rm`、`--network none`、限制 CPU 與記憶體
 
 | 檔案 | 內容 |
 | --- | --- |
+| `src/pcd2scene/cli.py` | 命令列（[docs/commands.md](docs/commands.md)） |
+| `src/pcd2scene/config.py` | 預設設定與 YAML 合併（[docs/config.md](docs/config.md)） |
 | `src/pcd2scene/io_pcd.py` | PCD、PLY 讀檔，LZF 解壓 |
 | `src/pcd2scene/reconstruct.py` | 還原流程（[docs/pipeline.md](docs/pipeline.md)） |
 | `src/pcd2scene/models.py` | 目錄物件的參數化模型 |
