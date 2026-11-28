@@ -71,7 +71,7 @@ Point Cloud Library 的 `room_scan1.pcd`（BSD-3-Clause），一間開向走廊�
 | 天花板 | 離地 2.95 m（預設不輸出，避免擋住俯視） |
 | 牆 | 3 面；第四側是走廊開口 |
 | 家具 | 彼此相連、沒有固定尺寸，留在殘餘網格 |
-| 覆蓋率 | 輸入點離場景表面 5 cm 內 93.1%，10 cm 內 100% |
+| 覆蓋率 | 輸入點離場景表面 5 cm 內 92.9%，10 cm 內 100% |
 | 時間 | 2.3 s（4 CPU） |
 
 ### 合成倉庫
@@ -85,7 +85,7 @@ Point Cloud Library 的 `room_scan1.pcd`（BSD-3-Clause），一間開向走廊�
 | 貨架 | 2/2，格數 4 與 3 正確，自動偵測的層板高度 1.02、2.02 m（真值 1.0、2.0 m） |
 | 桌子、棧板 | 3/3、2/2；所有目錄物件的中心誤差 6 mm 內、方向誤差 1 度內 |
 | 未登錄的箱子 | 留在殘餘網格 |
-| 覆蓋率 | 5 cm 內 99.97%，10 cm 內 100% |
+| 覆蓋率 | 5 cm 內 99.90%，10 cm 內 100% |
 
 俯視總覽（`overview.svg`）：
 
@@ -122,6 +122,19 @@ objects:
 ```
 
 模型類型有 `box`、`table`、`rack` 與外部 STL 的 `mesh`。全部欄位見 [docs/config.md](docs/config.md)，演算法與門檻的由來見 [docs/pipeline.md](docs/pipeline.md)。
+
+## 相關專案
+
+和其他點雲轉模擬場景的開源專案相比，各自的優缺點如下。逐項比較、讀碼版本與 pcd2scene 採納了哪些作法，見 [docs/related-work.md](docs/related-work.md)。
+
+| 專案 | 優點 | 缺點 |
+| --- | --- | --- |
+| pcd2scene | 地面、牆、物件拆成有類別的參數化幾何；碰撞體與外觀分開；URDF、SDF、USD 從同一份描述產生；相依輕、鎖版，輸出逐位元可重現；有驗收規格 | 殘餘網格是階梯狀；只收已對位的單一點雲；牆與物件的門檻要依場景調整 |
+| [pointcloud2gazebo](https://github.com/CyberAgentAILab/pointcloud2gazebo) | 流程短，容易修改；alpha shape 網格較平滑 | 整個場景一塊網格，沒有語意；結果對 `alpha` 與點密度敏感；只支援 Gazebo Classic；2023 年後沒有更新 |
+| [usd-convert-asset](https://github.com/NVIDIA-Omniverse/usd-convert-asset) | NVIDIA 維護；網格格式的支援面廣；不需要 Kit 或 GPU | 點雲只轉成 `UsdGeom.Points`，不重建表面、沒有物理屬性；自帶的 OpenUSD 不能和 `usd-core` 混用；限 Python 3.12；不收 PCD |
+| [bag_to_gazebo_world](https://github.com/gglaspell/bag_to_gazebo_world) | 從 ROS 2 bag 直接做到 world；Poisson 之後有密度修剪、距離修剪與減面 | 逐幀 ICP 容易漂移；DBSCAN 只留最大群；整個場景一塊網格；相依不鎖版，已封存 |
+| [Open3D](https://github.com/isl-org/Open3D)（函式庫） | 表面重建、離群濾波、ICP 成熟 | 相依重（`open3d-cpu` 約 105 MB）；Poisson 結果不保證跨版本逐位元相同 |
+| [OpenUSD](https://github.com/PixarAnimationStudios/OpenUSD)（函式庫） | pcd2scene 已透過 `usd-core` 直接寫 USD 與碰撞 API | 只是格式與 API，重建要自己做 |
 
 ## 限制
 

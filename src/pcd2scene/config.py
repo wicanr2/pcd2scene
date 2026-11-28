@@ -58,7 +58,14 @@ DEFAULTS = {
         "unknown": "mesh",          # 沒對上目錄的叢集：mesh（併入殘餘網格）、box（外接盒）、drop
         "catalog": [],
     },
-    "mesh": {"voxel": 0.05, "min_points": 1, "collision": True},
+    "mesh": {
+        "voxel": 0.05,
+        "min_points": 1,
+        "merge_faces": True,        # 同平面相鄰的體素面合併成矩形，三角形數大幅減少，形狀不變
+        "outlier_voxel": 0.1,       # 零星點判定：以這個體素做 26 連通
+        "outlier_min_points": 10,   # 連通後少於這個點數（體素後）的小叢集不建模；0 表示關閉
+        "collision": True,
+    },
     "validate": {"tolerances": [0.05, 0.1], "sample_step": 0.03},
     "preview": {"azimuth_deg": -55.0, "elevation_deg": 38.0, "width": 900, "height": 640},
     "export": {"formats": ["urdf", "sdf", "usd"], "frame": "scene", "mesh_uri": "relative"},

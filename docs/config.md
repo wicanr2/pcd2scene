@@ -45,6 +45,9 @@
 | `objects.catalog` | [] | 物件目錄，見下節 |
 | `mesh.voxel` | 0.05 | 殘餘網格的體素邊長 |
 | `mesh.min_points` | 1 | |
+| `mesh.merge_faces` | true | 同一平面上相鄰的體素面合併成矩形。形狀不變，三角形較少 |
+| `mesh.outlier_voxel` | 0.1 | 判斷零星點時做 26 連通的體素邊長 |
+| `mesh.outlier_min_points` | 10 | 連通後少於這個點數（體素後）的小叢集標成 outlier，不建模；0 表示關閉 |
 | `mesh.collision` | true | 殘餘網格是否當碰撞體 |
 | `validate.tolerances` | [0.05, 0.1] | 覆蓋率的距離門檻 |
 | `validate.sample_step` | 0.03 | 場景表面取樣間距 |

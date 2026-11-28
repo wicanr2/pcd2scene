@@ -37,7 +37,8 @@ wall candidate rejected: length 9.40 top 2.87 fill 0.29 upper 0.45 contact True
 | 地面 | 轉正後傾斜 1.72 度（room_scan1 是 1.04 度，兩次掃描的感測器姿態不同） |
 | 天花板 | 離地 2.96 m（room_scan1 是 2.95 m） |
 | 牆 | 3 面 |
-| 覆蓋率 | 輸入點離場景表面 5 cm 內 90.1%，10 cm 內 100% |
+| 殘餘網格 | 9,836 點、52,762 個三角形；另有 384 點是零星點（outlier），不建模 |
+| 覆蓋率 | 輸入點離場景表面 5 cm 內 89.9%，10 cm 內 100%（outlier 不計） |
 
 ![PCL 房間第二次掃描：左輸入點雲，右還原場景](../../docs/images/room_scan2_preview.png)
 

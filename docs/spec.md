@@ -89,11 +89,11 @@ pcd2scene 把點雲還原成一份中介表示 `scene.json`，再由它產生 UR
 
 | 欄位 | 定義 |
 | --- | --- |
-| `coverage.<tol>` | 體素後的輸入點中，離最近場景表面不超過 tol 公尺的比例。地面以下、天花板以上與 `drop` 掉的點不算 |
+| `coverage.<tol>` | 體素後的輸入點中，離最近場景表面不超過 tol 公尺的比例。地面以下、天花板以上、`drop` 掉的點與零星點（outlier）不算 |
 | `distance_m` | 同一組距離的中位數、95 百分位與最大值 |
 | `support.by_element` | 每個元素表面取樣點中，離最近輸入點不超過最大 tol 的比例。貼地的底面、靠牆的背面本來就掃不到，所以只當參考 |
 | `elements` | 每個類別的元素數 |
-| `labels` | 每個點最後的歸屬：floor、ceiling、wall、object、residual、below_floor、above_ceiling、dropped |
+| `labels` | 每個點最後的歸屬：floor、ceiling、wall、object、residual、outlier、below_floor、above_ceiling、dropped |
 
 `coverage` 衡量點雲被解釋了多少；目錄物件用標準尺寸的參數化模型取代觀測，所以覆蓋率會略低於全部用網格。
 

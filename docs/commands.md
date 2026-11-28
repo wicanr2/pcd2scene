@@ -105,8 +105,8 @@ walls: 5
   unmatched cluster at (2.82, -7.41): 0.56 x 0.55 x 1.41 m, 1490 points, on_floor True
   unmatched cluster at (23.02, -4.60): 0.86 x 0.65 x 0.92 m, 1505 points, on_floor True
 objects: pallet 2, rack 2, table 3
-residual: 3656 points -> 20732 triangles
-coverage: 0.05 m 1.000, 0.1 m 1.000; elements: {'floor': 1, 'pallet': 2, 'rack': 2, 'residual': 1, 'table': 3, 'wall': 5}
+residual: 3189 points -> 9580 triangles, outliers removed 467
+coverage: 0.05 m 0.999, 0.1 m 1.000; elements: {'floor': 1, 'pallet': 2, 'rack': 2, 'residual': 1, 'table': 3, 'wall': 5}
 wrote out/tutorial/scene: scene.json, overview.svg, report.json, scene.urdf, scene.sdf, scene.usda, preview.png
 ```
 
@@ -118,8 +118,8 @@ wrote out/tutorial/scene: scene.json, overview.svg, report.json, scene.urdf, sce
 | `walls` | 接受的牆數 |
 | `unmatched cluster` | 沒對上目錄的叢集：中心（場景座標）、長寬高、點數、是否落地。要加目錄項目時從這裡抄尺寸 |
 | `objects` | 對上目錄的各類別數量 |
-| `residual` | 進殘餘網格的點數與三角形數 |
-| `coverage` | 輸入點離場景表面 5 cm、10 cm 內的比例，取到小數三位（`report.json` 有四位：0.9997） |
+| `residual` | 進殘餘網格的點數與三角形數；有零星點被濾掉時附上點數（`mesh.outlier_*`） |
+| `coverage` | 輸入點離場景表面 5 cm、10 cm 內的比例，取到小數三位（`report.json` 有四位：0.999） |
 
 輸出目錄的檔案：
 
@@ -167,7 +167,7 @@ pcd2scene view out/tutorial/scene/scene.usda -o out/tutorial/usd.png
 ```
 
 ```text
-wrote out/tutorial/usd.png: scene.usda, 22136 triangles
+wrote out/tutorial/usd.png: scene.usda, 10984 triangles
 ```
 
 直接解析 `scene.urdf`、`scene.sdf`（或 `.world`）、`scene.usda`（或 `.usd`、`.usdc`），不讀 `scene.json`，所以畫出來的就是模擬器會載入的盒子、網格與位姿。URDF 依 joint 鏈組合位姿，SDF 依 model、link、visual 的 pose，USD 由 pxr 算每個 prim 的世界座標。三種格式讀回的三角形應該一樣多，數字不同代表匯出有問題。

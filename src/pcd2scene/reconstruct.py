@@ -400,10 +400,21 @@ def reconstruct(cloud, cfg, log=print, trace=None):
         + (f", unknown boxes {n_unknown}" if n_unknown else ""))
 
     # ---- 殘餘網格
-    res = label == ""
-    label[res] = "residual"
     cm = cfg["mesh"]
-    verts, tris = voxel_surface(P[res], cm["voxel"], cm["min_points"])
+    res = label == ""
+    n_out = 0
+    if cm["outlier_min_points"] > 0 and res.any():
+        # 零星點：連通後點數太少的小叢集（掃描雜訊、反光、遠處稀疏點），轉成網格只會是散落的小方塊
+        idx = np.flatnonzero(res)
+        keys = voxel_keys(P[idx], cm["outlier_voxel"], P[idx].min(axis=0))
+        uk, inv = np.unique(keys, axis=0, return_inverse=True)
+        lab_v = sparse_components(uk)[inv.reshape(-1)]
+        small = np.bincount(lab_v)[lab_v] < cm["outlier_min_points"]
+        label[idx[small]] = "outlier"
+        res[idx[small]] = False
+        n_out = int(small.sum())
+    label[res] = "residual"
+    verts, tris = voxel_surface(P[res], cm["voxel"], cm["min_points"], merge=cm["merge_faces"])
     meshes = {}
     if len(tris):
         meshes["residual"] = (verts, tris)
@@ -412,13 +423,15 @@ def reconstruct(cloud, cfg, log=print, trace=None):
                          "parts": [{"type": "mesh", "file": "meshes/residual.stl", "xyz": [0, 0, 0],
                                     "scale": [1, 1, 1]}],
                          "collision": bool(cm["collision"]),
-                         "stats": {"points": int(res.sum()), "triangles": int(len(tris))}})
-    log(f"residual: {int(res.sum())} points -> {len(tris)} triangles")
+                         "stats": {"points": int(res.sum()), "triangles": int(len(tris)),
+                                   "outlier_points": n_out}})
+    log(f"residual: {int(res.sum())} points -> {len(tris)} triangles"
+        + (f", outliers removed {n_out}" if n_out else ""))
     if trace is not None:
         trace["label_final"] = label.copy()
 
     groups = {}
-    fixed = {"floor", "ceiling", "below_floor", "above_ceiling", "dropped", "residual"}
+    fixed = {"floor", "ceiling", "below_floor", "above_ceiling", "dropped", "outlier", "residual"}
     for v in label:
         key = v if v in fixed else ("wall" if v.startswith("wall_") else "object")
         groups[key] = groups.get(key, 0) + 1

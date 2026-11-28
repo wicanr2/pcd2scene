@@ -13,7 +13,7 @@
 | 5. 地面板 | floor 點、最長那面牆的方向 | 地面元素（矩形板） | `floor.cell`、`floor.fill_holes` | `05_floor.png` |
 | 6. 分群 | 還沒標記的點 | 叢集 | `objects.cluster_voxel`、`objects.min_points` | `06_clusters.png` |
 | 7. 比對目錄 | 叢集、物件目錄 | 物件元素；點標上 object | `objects.catalog`、`objects.unknown` | `07_match.png` |
-| 8. 殘餘網格 | 還沒標記的點 | `meshes/residual.stl`、殘餘元素 | `mesh.voxel` | `08_residual.png` |
+| 8. 殘餘網格 | 還沒標記的點 | `meshes/residual.stl`、殘餘元素；零星點標上 outlier | `mesh.voxel`、`mesh.outlier_*` | `08_residual.png` |
 | 9. 場景描述 | 全部元素與轉換 | `scene.json`、`report.json`、`overview.svg`、`preview.png` | | `09_scene.png` |
 | 10. 匯出 | `scene.json` | `scene.urdf`、`scene.sdf`、`scene.usda` | `export.*` | `10_urdf.png`、`11_usd.png` |
 
@@ -159,9 +159,9 @@ objects:
 
 ## 8. 殘餘網格
 
-程式：`mesh.voxel_surface`。輸入：到這裡還沒標記的點。輸出：`meshes/residual.stl` 與一個殘餘元素，點標成 residual。
+程式：`mesh.voxel_surface`。輸入：到這裡還沒標記的點。輸出：`meshes/residual.stl` 與一個殘餘元素，點標成 residual；零星點標成 outlier。
 
-沒被以上任何一步解釋的點（這裡是 3,656 個，主要是兩個箱子）轉成體素表面：每個被佔的 5 cm 方格，朝空方格的面各輸出兩個三角形，共 20,732 個三角形。外觀是階梯狀，但封閉、位置誤差在半格以內，可以直接當碰撞體：
+沒被以上任何一步解釋的點有 3,656 個。先用 10 cm 體素做 26 連通，點數不到 10 的小叢集是零星點（這裡 467 點，都在牆頂邊緣），標成 outlier，不建模。其餘 3,189 點（主要是兩個箱子）轉成體素表面：每個被佔的 5 cm 方格朝空方格的面就是表面，同一平面上相鄰的面再合併成矩形，每個矩形兩個三角形，共 9,580 個三角形。外觀是階梯狀，但封閉、位置誤差在半格以內，可以直接當碰撞體：
 
 ![殘餘網格](images/tutorial/warehouse/08_residual.png)
 

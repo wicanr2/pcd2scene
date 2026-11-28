@@ -125,13 +125,13 @@ objects:
 
 ### 8. 殘餘網格
 
-輸入：兩個箱子的 2,029 點。輸出：`meshes/residual.stl`，9,708 個三角形：
+輸入：兩個箱子的 2,029 點。輸出：`meshes/residual.stl`，5,674 個三角形：同一平面上相鄰的體素面合併成矩形，形狀和逐面輸出相同：
 
 ![殘餘網格](../../docs/images/tutorial/office/08_residual.png)
 
 ### 9、10. 場景與匯出
 
-`scene.json` 有 15 個元素：地面、天花板、5 面牆、7 個家具、殘餘網格。天花板標了 `"export": false`，其餘 14 個匯出。三張圖都只畫匯出的元素，三角形都是 10,500 個：
+`scene.json` 有 15 個元素：地面、天花板、5 面牆、7 個家具、殘餘網格。天花板標了 `"export": false`，其餘 14 個匯出。三張圖都只畫匯出的元素，三角形都是 6,466 個：
 
 | scene.json | scene.urdf | scene.usda |
 | --- | --- | --- |

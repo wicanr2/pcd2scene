@@ -2,6 +2,11 @@
 
 ## 未發布
 
+- 殘餘網格：同一平面上相鄰的體素面合併成矩形（`mesh.merge_faces`，預設開）。形狀不變，三角形數：合成倉庫 20,732 → 9,580、合成辦公室 9,708 → 5,674、PCL 房間 66,468 → 38,012、room_scan2 79,620 → 52,762（含下一項的效果）。
+- 殘餘點的離群濾波：10 cm 體素 26 連通後點數不到 10 的小叢集標成 `outlier`，不建模，也不算進覆蓋率（`mesh.outlier_voxel`、`mesh.outlier_min_points`，預設開，設 0 關閉）。`scene.json` 的 `labels` 多一種值 `outlier`，殘餘元素的 `stats` 多一個 `outlier_points`；只增加選用欄位，規格版本維持 1.0。
+- 驗證：網格表面改成依 `validate.sample_step` 在三角形上均勻取樣，原本只取頂點與重心，合併後的大三角形會取樣不足。覆蓋率（5 cm）：合成倉庫 99.97% → 99.90%、PCL 房間 93.07% → 92.86%、room_scan2 90.13% → 89.90%；10 cm 內都維持 100%，驗收門檻不變。
+- 文件：新增 [docs/related-work.md](docs/related-work.md)，比較 pointcloud2gazebo、usd-convert-asset、bag_to_gazebo_world、Open3D、OpenUSD；README 加上各專案的優缺點。
+- 文件：更正 PCL 房間範例第 8 步的說明。殘餘網格裡排成弧形的點列在離地約 2.58 m 處，是天花板下方另一層水平結構的掃描線，不是地面上的零星點。
 - 文件：新增 [docs/commands.md](docs/commands.md)，逐一說明每個指令的輸入、輸出、範例輸出、log 與結束碼；指令與檔案關係圖 `docs/images/flow.svg`、點的歸屬圖 `docs/images/point_labels.svg`。
 - 文件：合成辦公室與 PCL 房間的範例頁改成逐步圖解（原始點雲到 URDF、USD 的 11 張圖，每步列出輸入與輸出）；`room_scan2` 加上調整 `walls.min_fill` 前後的對照圖；教學的步驟表加上輸入、輸出欄。
 - 修正：設定檔某個區段的欄位全被註解掉（例如只剩 `walls:`）時，`build` 會因區段變成 null 而失敗；現在沿用預設值。區段寫成非 mapping 的值時明確報錯。
